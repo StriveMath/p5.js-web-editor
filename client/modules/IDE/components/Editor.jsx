@@ -10,6 +10,7 @@ import { withTranslation } from 'react-i18next';
 import StackTrace from 'stacktrace-js';
 import 'codemirror/mode/css/css';
 import 'codemirror/mode/clike/clike';
+import 'codemirror/mode/python/python';
 import 'codemirror/addon/selection/active-line';
 import 'codemirror/addon/lint/lint';
 import 'codemirror/addon/lint/javascript-lint';
@@ -305,6 +306,8 @@ class Editor extends React.Component {
     let mode;
     if (fileName.match(/.+\.js$/i)) {
       mode = 'javascript';
+    } else if (fileName.match(/.+\.py$/i)) {
+      mode = 'python';
     } else if (fileName.match(/.+\.css$/i)) {
       mode = 'css';
     } else if (fileName.match(/.+\.(html|xml)$/i)) {
@@ -499,7 +502,7 @@ function mapStateToProps(state) {
     files: state.files,
     file:
       state.files.find((file) => file.isSelectedFile) ||
-      state.files.find((file) => file.name === 'sketch.js') ||
+      state.files.find((file) => file.name === 'sketch.py') ||
       state.files.find((file) => file.name !== 'root'),
     htmlFile: getHTMLFile(state.files),
     ide: state.ide,

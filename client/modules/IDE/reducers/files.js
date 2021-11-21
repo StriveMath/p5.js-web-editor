@@ -1,27 +1,78 @@
 import objectID from 'bson-objectid';
 import * as ActionTypes from '../../../constants';
 
-const defaultSketch = `function setup() {
-  createCanvas(400, 400);
-}
+const defaultSketch = `from p5 import *
 
-function draw() {
-  background(220);
-}`;
+
+def setup():
+  createCanvas(400, 400)
+
+
+def draw():
+  background('black')
+  drawTickAxes()
+`;
 
 const defaultHTML = `<!DOCTYPE html>
 <html lang="en">
   <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8" />
-
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/p5.strive.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/skulpt-stdlib.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StriveMath/assets@0.0.19/editor/jquery-3.5.1.min.js"></script>
+    <script>
+      // output functions are configurable.  This one just appends some text
+      // to a pre element.
+      function outf(text) { 
+          console.log(text); 
+      }
+      
+      function builtinRead(x) {
+          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+                  throw "File not found: '" + x + "'";
+          return Sk.builtinFiles["files"][x];
+      }
+      
+      function uncaught(pythonException) {
+          const lineno = pythonException.traceback[0].lineno;
+          const msg = pythonException.args.v[0].v;
+          const errorMessage = msg + " on line " + lineno;
+          console.error(errorMessage);
+          throw new Error('');
+      }
+      
+      function runCode() {
+        $('#sketch-holder').text('');
+        $.get('sketch.py', function (prog) {
+          Sk.pre = "output";
+          Sk.configure({output:outf, read:builtinRead, uncaughtException:uncaught}); 
+          Sk.canvas = "sketch-holder";
+          const myPromise = Sk.misceval.asyncToPromise(function() {
+              return Sk.importMainWithBody('<stdin>', false, prog.trim() + '\\nrun()', true);
+          });
+          myPromise.then(function(mod) {
+              console.log(' ');
+          },
+              function(err) {
+                  console.log(err.toString());
+          });
+        }, 'text');
+      }
+      
+      runCode();
+    </script>
   </head>
   <body>
     <main>
     </main>
-    <script src="sketch.js"></script>
+    <pre id="output" style="display: none;"></pre>
+    <div id="sketch-holder"></div>
   </body>
 </html>
 `;
@@ -50,7 +101,7 @@ const initialState = () => {
       content: ''
     },
     {
-      name: 'sketch.js',
+      name: 'sketch.py',
       content: defaultSketch,
       id: a,
       _id: a,
